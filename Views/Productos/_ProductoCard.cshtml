@@ -1,0 +1,15 @@
+@model Producto
+
+<div class="card h-100">
+    <div class="card-body d-flex flex-column">
+        <h2 class="h5 card-title">@Model.Nombre</h2>
+        <p class="card-text">@Model.Descripcion</p>
+        <p class="mb-1"><strong>Categoria:</strong> @Model.Categoria</p>
+        <p class="mb-1"><strong>Precio:</strong> ₡@Model.Precio</p>
+        <p class="mb-3">
+            <strong>Disponibilidad:</strong>
+            @(Model.Disponible ? "Disponible" : "No disponible")
+        </p>
+        <a asp-action="Detalle" asp-route-id="@Model.Id" class="btn btn-outline-primary mt-auto">Ver detalle</a>
+    </div>
+</div>

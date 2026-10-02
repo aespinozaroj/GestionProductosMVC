@@ -1,0 +1,17 @@
+@model List<string>
+
+@{
+    ViewData["Title"] = "Categorias";
+}
+
+<h1>Categorías disponibles</h1>
+<p class="text-muted">Esta lista se obtiene desde la caché en memoria (expira a los 10 minutos).</p>
+
+<ul class="list-group mt-3">
+    @foreach (var categoria in Model)
+    {
+        <li class="list-group-item">@categoria</li>
+    }
+</ul>
+
+<a asp-action="Index" class="btn btn-secondary mt-4">Volver al listado</a>

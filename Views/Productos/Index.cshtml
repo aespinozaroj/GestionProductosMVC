@@ -1,0 +1,21 @@
+@model List<Producto>
+
+@{
+    ViewData["Title"] = "Listado de productos";
+}
+
+<p>@ViewBag.Mensaje</p>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a asp-action="Crear" class="btn btn-primary">Crear producto</a>
+</div>
+
+<div class="row g-3">
+    @foreach (var producto in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <partial name="_ProductoCard" model="producto" />
+        </div>
+    }
+</div>
