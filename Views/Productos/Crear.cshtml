@@ -1,4 +1,4 @@
-@model Producto
+@model ProductoFormViewModel
 
 @{
     ViewData["Title"] = "Crear producto";
@@ -10,32 +10,34 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="mb-3">
-        <label asp-for="Nombre" class="form-label"></label>
-        <input asp-for="Nombre" class="form-control" />
-        <span asp-validation-for="Nombre" class="text-danger"></span>
+        <label asp-for="Producto.Nombre" class="form-label"></label>
+        <input asp-for="Producto.Nombre" class="form-control" />
+        <span asp-validation-for="Producto.Nombre" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Descripcion" class="form-label"></label>
-        <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
-        <span asp-validation-for="Descripcion" class="text-danger"></span>
+        <label asp-for="Producto.Descripcion" class="form-label"></label>
+        <textarea asp-for="Producto.Descripcion" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Producto.Descripcion" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Precio" class="form-label"></label>
-        <input asp-for="Precio" class="form-control" />
-        <span asp-validation-for="Precio" class="text-danger"></span>
+        <label asp-for="Producto.Precio" class="form-label"></label>
+        <input asp-for="Producto.Precio" class="form-control" />
+        <span asp-validation-for="Producto.Precio" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Categoria" class="form-label"></label>
-        <input asp-for="Categoria" class="form-control" />
-        <span asp-validation-for="Categoria" class="text-danger"></span>
+        <label asp-for="Producto.Categoria" class="form-label"></label>
+        <select asp-for="Producto.Categoria" asp-items="Model.Categorias" class="form-select">
+            <option value="">-- Seleccione una categoria --</option>
+        </select>
+        <span asp-validation-for="Producto.Categoria" class="text-danger"></span>
     </div>
 
     <div class="form-check mb-3">
-        <input asp-for="Disponible" class="form-check-input" />
-        <label asp-for="Disponible" class="form-check-label"></label>
+        <input asp-for="Producto.Disponible" class="form-check-input" />
+        <label asp-for="Producto.Disponible" class="form-check-label"></label>
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>

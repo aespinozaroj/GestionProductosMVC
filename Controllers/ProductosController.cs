@@ -1,5 +1,6 @@
 using GestionProductosMvc.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace GestionProductosMvc.Controllers;
@@ -104,20 +105,29 @@ public class ProductosController : Controller
     [HttpGet]
     public IActionResult Crear()
     {
-        return View(new Producto());
+        var modelo = new ProductoFormViewModel
+        {
+            Producto = new Producto(),
+            Categorias = ObtenerCategoriasParaFormulario()
+        };
+
+        return View(modelo);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Crear(Producto producto)
+    public IActionResult Crear(ProductoFormViewModel modelo)
     {
         if (!ModelState.IsValid)
         {
-            return View(producto);
+            // El <select> necesita la lista de categorías en cada renderizado,
+            // tanto en el GET inicial como aquí, si la validación falla.
+            modelo.Categorias = ObtenerCategoriasParaFormulario();
+            return View(modelo);
         }
 
-        producto.Id = Productos.Max(p => p.Id) + 1;
-        Productos.Add(producto);
+        modelo.Producto.Id = Productos.Max(p => p.Id) + 1;
+        Productos.Add(modelo.Producto);
 
         // Invalidar el caché para que la próxima solicitud refleje el nuevo producto.
         _cache.Remove(ClaveCacheProductos);
@@ -128,12 +138,24 @@ public class ProductosController : Controller
     // Ejemplo de caché con GetOrCreate (sección 11.5 del material).
     public IActionResult Categorias()
     {
-        var categorias = _cache.GetOrCreate("categorias", entry =>
+        var categorias = ObtenerCategorias();
+
+        return View(categorias);
+    }
+
+    private List<string> ObtenerCategorias()
+    {
+        return _cache.GetOrCreate("categorias", entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
             return new List<string> { "Accesorios", "Monitores", "Computadoras" };
-        });
+        })!;
+    }
 
-        return View(categorias);
+    private List<SelectListItem> ObtenerCategoriasParaFormulario()
+    {
+        return ObtenerCategorias()
+            .Select(categoria => new SelectListItem(categoria, categoria))
+            .ToList();
     }
 }
