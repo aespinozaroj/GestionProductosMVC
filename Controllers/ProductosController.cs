@@ -1,4 +1,5 @@
 using GestionProductosMvc.Models;
+using GestionProductosMvc.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
@@ -8,45 +9,16 @@ namespace GestionProductosMvc.Controllers;
 public class ProductosController : Controller
 {
     private readonly IMemoryCache _cache;
+    private readonly ProductosApiClient _api;
     private const string ClaveCacheProductos = "lista_productos";
 
-    private static readonly List<Producto> Productos =
-    [
-        new Producto
-        {
-            Id = 1,
-            Nombre = "Teclado inalambrico",
-            Descripcion = "Teclado compacto para oficina y estudio.",
-            Precio = 18500,
-            Categoria = "Accesorios",
-            Disponible = true
-        },
-        new Producto
-        {
-            Id = 2,
-            Nombre = "Mouse ergonomico",
-            Descripcion = "Mouse comodo para jornadas largas de trabajo.",
-            Precio = 12500,
-            Categoria = "Accesorios",
-            Disponible = true
-        },
-        new Producto
-        {
-            Id = 3,
-            Nombre = "Monitor LED 24 pulgadas",
-            Descripcion = "Monitor de 24 pulgadas con resolucion Full HD.",
-            Precio = 95000,
-            Categoria = "Monitores",
-            Disponible = false
-        }
-    ];
-
-    public ProductosController(IMemoryCache cache)
+    public ProductosController(IMemoryCache cache, ProductosApiClient api)
     {
         _cache = cache;
+        _api = api;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
         // ViewData: envía el título al layout y a la vista.
         ViewData["Title"] = "Listado de productos";
@@ -54,10 +26,10 @@ public class ProductosController : Controller
         // ViewBag: envía un mensaje simple a la vista.
         ViewBag.Mensaje = "Productos disponibles";
 
-        // Caché en memoria: evita regenerar la lista si ya fue almacenada.
+        // Caché en memoria: evita volver a llamar a la API si ya se guardó la respuesta.
         if (!_cache.TryGetValue(ClaveCacheProductos, out List<Producto>? productosEnCache))
         {
-            productosEnCache = Productos;
+            productosEnCache = await _api.ObtenerTodosAsync();
 
             var opciones = new MemoryCacheEntryOptions
             {
@@ -70,9 +42,9 @@ public class ProductosController : Controller
         return View(productosEnCache);
     }
 
-    public IActionResult Detalle(int id)
+    public async Task<IActionResult> Detalle(int id)
     {
-        var producto = Productos.FirstOrDefault(p => p.Id == id);
+        var producto = await _api.ObtenerPorIdAsync(id);
 
         if (producto is null)
         {
@@ -88,9 +60,9 @@ public class ProductosController : Controller
     // convención heredada de Program.cs, esta acción también responde en
     // /productos/detalle-directo/{id}, sin importar el nombre del controlador o de la acción.
     [HttpGet("productos/detalle-directo/{id:int}")]
-    public IActionResult DetalleDirecto(int id)
+    public async Task<IActionResult> DetalleDirecto(int id)
     {
-        var producto = Productos.FirstOrDefault(p => p.Id == id);
+        var producto = await _api.ObtenerPorIdAsync(id);
 
         if (producto is null)
         {
@@ -105,6 +77,11 @@ public class ProductosController : Controller
     [HttpGet]
     public IActionResult Crear()
     {
+        if (!EsAdministrador())
+        {
+            return RedirectToAction("Login", "Acceso");
+        }
+
         var modelo = new ProductoFormViewModel
         {
             Producto = new Producto(),
@@ -116,8 +93,13 @@ public class ProductosController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Crear(ProductoFormViewModel modelo)
+    public async Task<IActionResult> Crear(ProductoFormViewModel modelo)
     {
+        if (!EsAdministrador())
+        {
+            return RedirectToAction("Login", "Acceso");
+        }
+
         if (!ModelState.IsValid)
         {
             // El <select> necesita la lista de categorías en cada renderizado,
@@ -126,8 +108,7 @@ public class ProductosController : Controller
             return View(modelo);
         }
 
-        modelo.Producto.Id = Productos.Max(p => p.Id) + 1;
-        Productos.Add(modelo.Producto);
+        await _api.CrearAsync(modelo.Producto);
 
         // Invalidar el caché para que la próxima solicitud refleje el nuevo producto.
         _cache.Remove(ClaveCacheProductos);
@@ -141,6 +122,11 @@ public class ProductosController : Controller
         var categorias = ObtenerCategorias();
 
         return View(categorias);
+    }
+
+    private bool EsAdministrador()
+    {
+        return HttpContext.Session.GetString("UsuarioRol") == "Administrador";
     }
 
     private List<string> ObtenerCategorias()

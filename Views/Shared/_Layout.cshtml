@@ -30,6 +30,23 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Productos" asp-action="Categorias">Categorias</a>
                         </li>
                     </ul>
+                    <ul class="navbar-nav">
+                        @if (Context.Session.GetString("UsuarioRol") is string rol)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link text-dark">Sesión: @rol</span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Acceso" asp-action="Salir">Salir</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Acceso" asp-action="Login">Iniciar sesión</a>
+                            </li>
+                        }
+                    </ul>
                 </div>
             </div>
         </nav>
